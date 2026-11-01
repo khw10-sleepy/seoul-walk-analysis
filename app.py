@@ -179,11 +179,11 @@ with tab3:
     fig = px.bar(g, x="만족도", y="구", orientation="h", height=620, text_auto=".2f",
                  color="만족도", color_continuous_scale="RdYlGn", range_color=[2.2, 3.2])
     fig.add_vline(x=df["만족도"].mean(), line_dash="dash")
-    fig.update_layout(coloraxis_showscale=False, xaxis_range=[2, 3.3])
+    fig.update_layout(coloraxis_showscale=False, xaxis_range=[0, 5], xaxis_title="평균 만족도 (점, 5점 만점)")
     st.plotly_chart(fig, width="stretch")
     st.caption(f"가장 높은 구: {g.iloc[-1]['구']} ({g.iloc[-1]['만족도']:.2f}) · "
                f"가장 낮은 구: {g.iloc[0]['구']} ({g.iloc[0]['만족도']:.2f}). "
-               "가로축이 2점부터 시작해요. 동네마다 차이가 있어서 회귀분석에서 '구 차이'를 따로 떼어 냈어요.")
+               "동네마다 차이가 있어서 회귀분석에서 '구 차이'를 따로 떼어 냈어요.")
 
     st.subheader("🔍 요인 하나씩 비교하기")
     f = st.selectbox("요인 고르기", list(FACTORS), format_func=lambda c: NAME[c])
@@ -191,9 +191,10 @@ with tab3:
         t = df.dropna(subset=[f]).assign(그룹=lambda x: x[f].map({1.0: "있음/예", 0.0: "없음/아니오"}))
         s = t.groupby("그룹")["만족도"].agg(평균만족도="mean", 지점수="count").reset_index()
         fig = px.bar(s, x="그룹", y="평균만족도", text_auto=".2f", height=380, hover_data=["지점수"])
-        fig.update_layout(yaxis_range=[2, 3.2])
+        fig.update_layout(yaxis_range=[0, 5], yaxis_title="평균 만족도 (점, 5점 만점)")
         st.plotly_chart(fig, width="stretch")
-        st.caption("세로축이 2점부터 시작해요. 차이를 확대해서 보여 주는 것이니 막대 길이만 보고 차이를 크게 느끼면 안 돼요.")
+        d_ = s.set_index("그룹")["평균만족도"]
+        st.caption(f"차이: {abs(d_.iloc[0]-d_.iloc[1]):.2f}점. 세로축은 0부터 시작해요(실제 차이 크기 그대로).")
     else:
         fig = px.scatter(df, x=f, y="만족도", trendline="ols", opacity=0.4, height=420,
                          labels={f: NAME[f], "만족도": "평균 만족도"})
